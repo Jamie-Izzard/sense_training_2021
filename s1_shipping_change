@@ -1,0 +1,39 @@
+// Load the Sentinel-1 ImageCollection.
+var sentinel1 = ee.ImageCollection('COPERNICUS/S1_GRD');
+
+// Filter by metadata properties.
+var vh = sentinel1
+  // Filter to get images with VH polarization.
+  .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VH'))
+  // Filter to get images collected in interferometric wide swath mode.
+  .filter(ee.Filter.eq('instrumentMode', 'IW'))
+  .filterDate("2020-07-01","2021-07-01");
+
+// Filter to get images from different look angles.
+var vhAscending = vh.filter(ee.Filter.eq('orbitProperties_pass', 'ASCENDING'));
+var vhDescending = vh.filter(ee.Filter.eq('orbitProperties_pass', 'DESCENDING'));
+
+// Create a composite from means at different polarizations and look angles.
+var vhMaxA = vhAscending.select('VH').max();//.focal_median();
+var vhMaxD = vhDescending.select('VH').max();//.focal_median();
+
+var pre_vh = sentinel1
+  // Filter to get images with VH polarization.
+  .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VH'))
+  // Filter to get images collected in interferometric wide swath mode.
+  .filter(ee.Filter.eq('instrumentMode', 'IW'))
+  .filterDate("2018-07-01","2020-07-01");
+
+// Filter to get images from different look angles.
+var pre_vhAscending = pre_vh.filter(ee.Filter.eq('orbitProperties_pass', 'ASCENDING'));
+//var vhDescending = vh.filter(ee.Filter.eq('orbitProperties_pass', 'DESCENDING'));
+
+// Create a composite from means at different polarizations and look angles.
+var pre_vhMaxA = pre_vhAscending.select('VH').max();//.focal_median();
+//var vhMaxD = vhDescending.select('VH').max();//.focal_median();
+
+// Map composite over the Channel
+Map.setCenter(12, 57, 9);
+Map.addLayer(vhMaxA, {min: -15, max: 0}, 'after',0);
+Map.addLayer(pre_vhMaxA, {min: -15, max: 0}, 'before',0);
+//Map.addLayer(vhMaxD, {min: -15, max: 0}, 'VH DES max');
